@@ -31,21 +31,21 @@ ln -s $DATASETS/VOCdevkit/VOC2012/JPEGImages images
 In the next step we have to select only images that contain classes (in our case 3) for which we want to train our semantic segmentation algorithm. At first we create a list of all images that can be exploited for segmentation. 
 
 ```bash
-find labels/ -printf '%f\n' | sed 's/\.png//'  | tail -n +2 > train.txt
+find labels/ -printf '%f\n' | sed 's/\.png//'  | tail -n +2 > images.txt
 ```
 Ground truth segmentations in PASCAL VOC 2012 dataset are defined as RGB images. However, if you decide to use different dataset or already preprocessed segmentations, you could be working with gray-level ones whose values exactly correspondent to label indexes in documentation. Because the workflow of creating dataset for training is separated to several parts, we access some images twice. In a case that we are working with unpreprocessed ground truth segmentations, we would have to perform conversion twice. Unfortunately, this conversion is rather time consuming (~2s), therefore we suggest to run following command first. It is not mandatory though.
 
 ```bash
-python convert_labels.py labels/ train.txt converted_labels/ # OPTIONAL
+python convert_labels.py labels/ images.txt converted_labels/ # OPTIONAL
 ```
 
-Then we decide which classes we are interested in and specify them in *filter_images.py* (on [line 15](https://github.com/martinkersner/train-CRF-RNN/blob/master/filter_images.py#L15) there is set *bird*, *bottle* and *chair* class). This script will create several text files (which list images containing our desired classes) named correspondingly to selected classes. Each file has the same structure as *train.txt*. In a case of experimenting with different classes it would be wise to generate those image list for all classes from dataset.
+Then we decide which classes we are interested in and specify them in *filter_images.py* (on [line 15](https://github.com/martinkersner/train-CRF-RNN/blob/master/filter_images.py#L15) there is set *bird*, *bottle* and *chair* class). This script will create several text files (which list images containing our desired classes) named correspondingly to selected classes. Each file has the same structure as *images.txt*. In a case of experimenting with different classes it would be wise to generate those image list for all classes from dataset.
 
 You should be aware that if an image label is composed from more than one class in which we are interested in, that image will be always assigned to a class with lower id. This behavior could potentionally cause a problem if dataset consists of many images with the same label couples. However, this doesn't count for *background* class.
 
 ```bash
-python filter_images.py labels/ train.txt # in a case you DID NOT RUN convert_labels.py script
-#python filter_images.py converted_labels/ train.txt # you RUN convert_labels.py script
+python filter_images.py labels/ images.txt # in a case you DID NOT RUN convert_labels.py script
+#python filter_images.py converted_labels/ images.txt # you RUN convert_labels.py script
 ```
 
 
@@ -68,14 +68,14 @@ In order to be able to start a training we will need to download precomputed wei
 
 ```bash
 wget http://goo.gl/j7PrPZ -O TVG_CRFRNN_COCO_VOC.caffemodel
-python solve.py 2>&1 | tee train.log
+python solve.py 2>&1 | tee images.log
 ```
 
 ### Visualization
 During training we can visualize a loss using *loss_from_log.py*. Script accepts even more than one log file. That can be useful when we had to stop training and restarted it from the last state. Therefore, we end up with two or more log files.
 
 ```bash
-python loss_from_log.py train.log
+python loss_from_log.py images.log
 ```
 <p align="center">
 <img src="http://i.imgur.com/jlfkY1p.png?1" width=500/>
@@ -90,7 +90,7 @@ If you want to use for example 6 different classes, you should change parameter 
 
 <hr>
 <a name="myfootnote1">(1)</a> 
-aeroplane, bicycle, bird, boat, bottle, bus, car , cat, chair, cow, diningtable, dog, horse, motorbike, person, potted plant, sheep, sofa, train, tv/monitor
+aeroplane, bicycle, bird, boat, bottle, bus, car , cat, chair, cow, diningtable, dog, horse, motorbike, person, pottedplant, sheep, sofa, train, tvmonitor
 
 <a name="myfootnote2">(2)</a> 
 Maybe one noticed that in `JPEGImages` directory there are more than 2913 images. This is because dataset is not used only for segmentation but also for detection.
