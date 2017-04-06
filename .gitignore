@@ -4,3 +4,7 @@
 *.par
 *.jpg
 *.log
+*_lmdb/
+images
+labels
+converted_labels/
